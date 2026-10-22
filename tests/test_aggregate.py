@@ -30,7 +30,7 @@ def test_exclui_merge_bump_e_outros_autores():
     sh(d, "checkout", "-q", "main")
     sh(d, "merge", "-q", "--no-ff", "f", "-m", "Merge f")
     r = ag.aggregate(ag.git_log(d, ["EU@x.br"]))
-    assert r["2026-08"] == {"commits": 2, "bumps_excluidos": 1, "versoes": 1}
+    assert r["2026-08"] == {"commits": 2, "bumps_excluidos": 1, "versoes": 1, "dias_ativos": 3}
     assert r["2026-09"]["commits"] == 1
 
 
@@ -63,7 +63,7 @@ def test_rotulo_de_mes_e_parcial():
 
 
 def test_svg_com_tema_claro_e_escuro_e_mes_parcial():
-    meses = {"2026-07": {"commits": 10, "bumps_excluidos": 0, "versoes": 0}}
+    meses = {"2026-07": {"commits": 10, "bumps_excluidos": 0, "versoes": 0, "dias_ativos": 0}}
     out = ag.svg(meses)
     assert "prefers-color-scheme:dark" in out and 'class="bg"' in out
     assert "* mês parcial" not in out or ag.current_month() in meses
@@ -115,3 +115,10 @@ def test_versoes_contam_uma_vez_mesmo_com_varios_bumps():
     r = ag.aggregate(commits)
     assert r["2026-08"]["versoes"] == 1 and r["2026-09"]["versoes"] == 1
     assert r["2026-09"]["commits"] == 1 and r["2026-09"]["bumps_excluidos"] == 2
+
+
+def test_dias_ativos_contam_dias_distintos_por_mes():
+    commits = [("2026-08", "feat: a", "2026-08-01"), ("2026-08", "feat: b", "2026-08-01"),
+               ("2026-08", "chore: bump 0.1.1", "2026-08-02"), ("2026-09", "feat: c", "2026-09-01")]
+    r = ag.aggregate(commits)
+    assert r["2026-08"]["dias_ativos"] == 2 and r["2026-09"]["dias_ativos"] == 1

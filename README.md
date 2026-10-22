@@ -9,16 +9,17 @@ Atividade de desenvolvimento no **Portal RSC**, sistema web de gestão do proces
 ## Indicadores
 
 <!-- stats:start -->
-| Mês | Commits | Versões | Issues fechadas | Mediana até fechar (dias) |
-|---|---:|---:|---:|---:|
-| jul/26 | 15 | 0 | – | – |
-| ago/26 | 142 | 24 | 100 | 1.9 |
-| set/26 | 184 | 33 | 127 | 1.0 |
-| out/26* | 241 | 38 | 95 | 1.1 |
-| **Total** | **582** | **95** | **322** | |
+| Mês | Commits | Dias ativos | Versões | Issues fechadas | Mediana até fechar (dias) |
+|---|---:|---:|---:|---:|---:|
+| jul/26 | 15 | 1 | 0 | – | – |
+| ago/26 | 142 | 16 | 24 | 100 | 1.9 |
+| set/26 | 184 | 13 | 33 | 127 | 1.0 |
+| out/26* | 241 | 13 | 38 | 95 | 1.1 |
+| **Total** | **582** | **43** | **95** | **322** | |
 <!-- stats:end -->
 
 - **Commits:** de autoria própria, todos os ramos, uma vez por hash; sem merges e sem bumps de versão.
+- **Dias ativos:** dias distintos do mês com pelo menos um commit meu (inclui bumps; fuso do próprio commit).
 - **Versões:** versões distintas geradas por bumps de versão nas MRs, contadas uma vez no mês em que apareceram (não equivale a deploy em produção).
 - **Issues fechadas:** issues que abri e que já foram fechadas, no mês do fechamento. A mediana é o tempo entre abrir e fechar.
 - O projeto é desenvolvido com apoio de ferramentas de IA (*AI-assisted*).

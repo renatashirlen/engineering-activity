@@ -24,18 +24,18 @@ SEP_R, SEP_C = "\x1e", "\x1f"
 def git_log(repo, authors):
     cmd = ["git", "-C", str(repo), "log", "--all", "--no-merges",
            f"--format={SEP_R}%H{SEP_C}%ae{SEP_C}%ad{SEP_C}%s",
-           "--date=format:%Y-%m"]
+           "--date=format:%Y-%m-%d"]
     out = subprocess.run(cmd, capture_output=True, text=True, check=True).stdout
     wanted = {a.lower() for a in authors}
     seen = set()
     for rec in out.split(SEP_R):
         if not rec.strip():
             continue
-        h, email, month, subject = (rec.split(SEP_C) + [""] * 4)[:4]
+        h, email, dia, subject = (rec.split(SEP_C) + [""] * 4)[:4]
         if h in seen or email.lower() not in wanted:
             continue
         seen.add(h)
-        yield month, subject
+        yield dia[:7], subject, dia
 
 
 VERSAO = re.compile(r"\d+\.\d+\.\d+")
@@ -44,8 +44,12 @@ VERSAO = re.compile(r"\d+\.\d+\.\d+")
 def aggregate(commits):
     months = defaultdict(lambda: {"commits": 0, "bumps_excluidos": 0})
     primeira = {}  # versão -> primeiro mês em que apareceu (conta uma vez só)
-    for month, subject in commits:
+    dias = defaultdict(set)  # dias distintos com algum commit (inclui bumps), por mês
+    for item in commits:
+        month, subject = item[0], item[1]
         m = months[month]
+        if len(item) > 2:
+            dias[month].add(item[2])
         if BUMP.search(subject):
             m["bumps_excluidos"] += 1
             v = VERSAO.findall(subject)
@@ -55,8 +59,9 @@ def aggregate(commits):
         m["commits"] += 1
     for mes in primeira.values():
         months[mes]["versoes"] = months[mes].get("versoes", 0) + 1
-    for m in months.values():
+    for k, m in months.items():
         m.setdefault("versoes", 0)
+        m["dias_ativos"] = len(dias[k])
     return {k: months[k] for k in sorted(months)}
 
 
@@ -130,13 +135,13 @@ def write_if_changed(path, text):
 
 def readme_table(summary):
     issues = summary.get("issues", {})
-    rows = ["| Mês | Commits | Versões | Issues fechadas | Mediana até fechar (dias) |", "|---|---:|---:|---:|---:|"]
+    rows = ["| Mês | Commits | Dias ativos | Versões | Issues fechadas | Mediana até fechar (dias) |", "|---|---:|---:|---:|---:|---:|"]
     for k, m in summary["meses"].items():
         i = issues.get(k)
-        rows.append(f"| {label(k, k == current_month())} | {m['commits']} | {m['versoes']} | "
+        rows.append(f"| {label(k, k == current_month())} | {m['commits']} | {m['dias_ativos']} | {m['versoes']} | "
                     f"{i['fechadas'] if i else '–'} | {i['mediana_dias'] if i else '–'} |")
     ti = sum(i["fechadas"] for i in issues.values())
-    rows.append(f"| **Total** | **{summary['total_commits']}** | **{summary['total_versoes']}** | **{ti if issues else '–'}** | |")
+    rows.append(f"| **Total** | **{summary['total_commits']}** | **{summary['total_dias_ativos']}** | **{summary['total_versoes']}** | **{ti if issues else '–'}** | |")
     return "\n".join(rows)
 
 
@@ -167,6 +172,7 @@ def main(argv=None):
     summary = {
         "meses": months,
         "total_commits": sum(m["commits"] for m in months.values()),
+        "total_dias_ativos": sum(m["dias_ativos"] for m in months.values()),
         "total_versoes": sum(m["versoes"] for m in months.values()),
         "primeiro_mes": next(iter(months), None),
         "criterios": "sem merges, sem bumps de versão, hashes únicos entre ramos",

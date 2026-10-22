@@ -3,25 +3,30 @@
     "2026-07": {
       "commits": 15,
       "bumps_excluidos": 0,
-      "versoes": 0
+      "versoes": 0,
+      "dias_ativos": 1
     },
     "2026-08": {
       "commits": 142,
       "bumps_excluidos": 29,
-      "versoes": 24
+      "versoes": 24,
+      "dias_ativos": 16
     },
     "2026-09": {
       "commits": 184,
       "bumps_excluidos": 45,
-      "versoes": 33
+      "versoes": 33,
+      "dias_ativos": 13
     },
     "2026-10": {
       "commits": 241,
       "bumps_excluidos": 39,
-      "versoes": 38
+      "versoes": 38,
+      "dias_ativos": 13
     }
   },
   "total_commits": 582,
+  "total_dias_ativos": 43,
   "total_versoes": 95,
   "primeiro_mes": "2026-07",
   "criterios": "sem merges, sem bumps de versão, hashes únicos entre ramos",
