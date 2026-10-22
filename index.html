@@ -39,8 +39,8 @@
   <div class="chart" id="chart" role="img" aria-label="Gráfico de barras de commits por mês; os mesmos valores estão na tabela abaixo"></div>
   <div class="labels" id="labels" aria-hidden="true"></div>
   <h2>Detalhe</h2>
-  <table id="tabela"><caption>Commits (sem merges e sem bumps de versão) e issues fechadas por mês</caption>
-    <thead><tr><th scope="col">Mês</th><th scope="col">Commits</th><th scope="col">Issues fechadas</th><th scope="col">Mediana até fechar (dias)</th></tr></thead>
+  <table id="tabela"><caption>Commits (sem merges e sem bumps), versões geradas e issues fechadas por mês</caption>
+    <thead><tr><th scope="col">Mês</th><th scope="col">Commits</th><th scope="col">Versões</th><th scope="col">Issues fechadas</th><th scope="col">Mediana até fechar (dias)</th></tr></thead>
     <tbody></tbody></table>
   <p class="note" id="nota">Carregando…</p>
   <p class="note">Nenhum código, mensagem de commit ou dado de outras pessoas do repositório institucional foi copiado. O projeto é desenvolvido com apoio de ferramentas de IA (AI-assisted). <a href="https://github.com/renatashirlen/engineering-activity">Código deste painel</a>.</p>
@@ -54,12 +54,12 @@ fetch("data/activity-summary.json").then(r => r.json()).then(d => {
   const topo = Math.max(...meses.map(([, m]) => m.commits), 1);
   const totalIss = Object.values(iss).reduce((s, i) => s + i.fechadas, 0);
   const kpi = (v, t) => `<div class="kpi"><b>${v}</b><span>${t}</span></div>`;
-  document.getElementById("kpis").innerHTML = kpi(d.total_commits, "commits") + kpi(totalIss || "–", "issues fechadas") + kpi(meses.length, "meses de histórico");
+  document.getElementById("kpis").innerHTML = kpi(d.total_commits, "commits") + kpi(totalIss || "–", "issues fechadas") + kpi(d.total_versoes ?? "–", "versões (bumps)") + kpi(meses.length, "meses de histórico");
   document.getElementById("chart").innerHTML = meses.map(([k, m]) =>
     `<div class="col"><span class="val">${m.commits}</span><div class="bar${k === agora ? " cur" : ""}" style="height:${Math.round(m.commits / topo * 180)}px"></div></div>`).join("");
   document.getElementById("labels").innerHTML = meses.map(([k]) => `<span>${rot(k, k === agora)}</span>`).join("");
   document.querySelector("#tabela tbody").innerHTML = meses.map(([k, m]) => {
-    const i = iss[k]; return `<tr><th scope="row">${rot(k, k === agora)}</th><td>${m.commits}</td><td>${i ? i.fechadas : "–"}</td><td>${i ? i.mediana_dias : "–"}</td></tr>`; }).join("");
+    const i = iss[k]; return `<tr><th scope="row">${rot(k, k === agora)}</th><td>${m.commits}</td><td>${m.versoes ?? "–"}</td><td>${i ? i.fechadas : "–"}</td><td>${i ? i.mediana_dias : "–"}</td></tr>`; }).join("");
   document.getElementById("nota").textContent = (meses.some(([k]) => k === agora) ? "* mês parcial. " : "") + "Histórico disponível desde " + rot(d.primeiro_mes) + ".";
 }).catch(() => { document.getElementById("nota").textContent = "Não foi possível carregar os dados."; });
 </script>

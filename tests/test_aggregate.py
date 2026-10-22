@@ -30,7 +30,7 @@ def test_exclui_merge_bump_e_outros_autores():
     sh(d, "checkout", "-q", "main")
     sh(d, "merge", "-q", "--no-ff", "f", "-m", "Merge f")
     r = ag.aggregate(ag.git_log(d, ["EU@x.br"]))
-    assert r["2026-08"] == {"commits": 2, "bumps_excluidos": 1}
+    assert r["2026-08"] == {"commits": 2, "bumps_excluidos": 1, "versoes": 1}
     assert r["2026-09"]["commits"] == 1
 
 
@@ -63,7 +63,7 @@ def test_rotulo_de_mes_e_parcial():
 
 
 def test_svg_com_tema_claro_e_escuro_e_mes_parcial():
-    meses = {"2026-07": {"commits": 10, "bumps_excluidos": 0}}
+    meses = {"2026-07": {"commits": 10, "bumps_excluidos": 0, "versoes": 0}}
     out = ag.svg(meses)
     assert "prefers-color-scheme:dark" in out and 'class="bg"' in out
     assert "* mês parcial" not in out or ag.current_month() in meses
@@ -105,3 +105,13 @@ def test_saida_sem_dados_de_issues_individuais():
     ag.main(["--repo", d, "--author", "eu@x.br", "--out", out, "--issues-json", str(f), "--write"])
     texto = (Path(out) / "data/activity-summary.json").read_text()
     assert "created_at" not in texto and "closed_at" not in texto and '"fechadas": 1' in texto
+
+
+def test_versoes_contam_uma_vez_mesmo_com_varios_bumps():
+    commits = [("2026-08", "chore(release): bump de versao para 0.1.5 (#1)"),
+               ("2026-09", "chore(release): bump de versao para 0.1.5 (#2)"),
+               ("2026-09", "chore(docker): bump versão da imagem 0.1.5 → 0.1.6"),
+               ("2026-09", "feat: algo")]
+    r = ag.aggregate(commits)
+    assert r["2026-08"]["versoes"] == 1 and r["2026-09"]["versoes"] == 1
+    assert r["2026-09"]["commits"] == 1 and r["2026-09"]["bumps_excluidos"] == 2

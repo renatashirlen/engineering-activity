@@ -38,14 +38,25 @@ def git_log(repo, authors):
         yield month, subject
 
 
+VERSAO = re.compile(r"\d+\.\d+\.\d+")
+
+
 def aggregate(commits):
     months = defaultdict(lambda: {"commits": 0, "bumps_excluidos": 0})
+    primeira = {}  # versão -> primeiro mês em que apareceu (conta uma vez só)
     for month, subject in commits:
         m = months[month]
         if BUMP.search(subject):
             m["bumps_excluidos"] += 1
+            v = VERSAO.findall(subject)
+            if v:
+                primeira[v[-1]] = min(month, primeira.get(v[-1], month))
             continue
         m["commits"] += 1
+    for mes in primeira.values():
+        months[mes]["versoes"] = months[mes].get("versoes", 0) + 1
+    for m in months.values():
+        m.setdefault("versoes", 0)
     return {k: months[k] for k in sorted(months)}
 
 
@@ -119,13 +130,13 @@ def write_if_changed(path, text):
 
 def readme_table(summary):
     issues = summary.get("issues", {})
-    rows = ["| Mês | Commits | Issues fechadas | Mediana até fechar (dias) |", "|---|---:|---:|---:|"]
+    rows = ["| Mês | Commits | Versões | Issues fechadas | Mediana até fechar (dias) |", "|---|---:|---:|---:|---:|"]
     for k, m in summary["meses"].items():
         i = issues.get(k)
-        rows.append(f"| {label(k, k == current_month())} | {m['commits']} | "
+        rows.append(f"| {label(k, k == current_month())} | {m['commits']} | {m['versoes']} | "
                     f"{i['fechadas'] if i else '–'} | {i['mediana_dias'] if i else '–'} |")
     ti = sum(i["fechadas"] for i in issues.values())
-    rows.append(f"| **Total** | **{summary['total_commits']}** | **{ti if issues else '–'}** | |")
+    rows.append(f"| **Total** | **{summary['total_commits']}** | **{summary['total_versoes']}** | **{ti if issues else '–'}** | |")
     return "\n".join(rows)
 
 
@@ -156,6 +167,7 @@ def main(argv=None):
     summary = {
         "meses": months,
         "total_commits": sum(m["commits"] for m in months.values()),
+        "total_versoes": sum(m["versoes"] for m in months.values()),
         "primeiro_mes": next(iter(months), None),
         "criterios": "sem merges, sem bumps de versão, hashes únicos entre ramos",
     }

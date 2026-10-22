@@ -9,16 +9,17 @@ Atividade de desenvolvimento no **Portal RSC**, sistema web de gestão do proces
 ## Indicadores
 
 <!-- stats:start -->
-| Mês | Commits | Issues fechadas | Mediana até fechar (dias) |
-|---|---:|---:|---:|
-| jul/26 | 15 | – | – |
-| ago/26 | 142 | 100 | 1.9 |
-| set/26 | 184 | 127 | 1.0 |
-| out/26* | 241 | 95 | 1.1 |
-| **Total** | **582** | **322** | |
+| Mês | Commits | Versões | Issues fechadas | Mediana até fechar (dias) |
+|---|---:|---:|---:|---:|
+| jul/26 | 15 | 0 | – | – |
+| ago/26 | 142 | 24 | 100 | 1.9 |
+| set/26 | 184 | 33 | 127 | 1.0 |
+| out/26* | 241 | 38 | 95 | 1.1 |
+| **Total** | **582** | **95** | **322** | |
 <!-- stats:end -->
 
 - **Commits:** de autoria própria, todos os ramos, uma vez por hash; sem merges e sem bumps de versão.
+- **Versões:** versões distintas geradas por bumps de versão nas MRs, contadas uma vez no mês em que apareceram (não equivale a deploy em produção).
 - **Issues fechadas:** issues que abri e que já foram fechadas, no mês do fechamento. A mediana é o tempo entre abrir e fechar.
 - O projeto é desenvolvido com apoio de ferramentas de IA (*AI-assisted*).
 - O mês marcado com `*` é **parcial**. O histórico disponível começa em julho/2026 (as issues começam em agosto).
