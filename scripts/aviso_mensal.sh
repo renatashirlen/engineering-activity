@@ -3,7 +3,9 @@
 set -u
 AQUI="$(cd "$(dirname "$0")/.." && pwd)"
 REPO="${RSC_REPO:-$HOME/desenvolvimento/rsc-tae}"
-AUTOR="${ATIVIDADE_AUTOR:-}"
+CONF="${ATIVIDADE_CONF:-$HOME/.config/engineering-activity.env}"  # fora do repositório; define ATIVIDADE_AUTOR
+[ -f "$CONF" ] && . "$CONF"
+AUTOR="${ATIVIDADE_AUTOR:?defina ATIVIDADE_AUTOR em $CONF}"
 AVISO="$HOME/engineering-activity-aviso.txt"
 
 python3 "$AQUI/scripts/aggregate_activity.py" --repo "$REPO" --author "$AUTOR" --out "$AQUI" --check >/dev/null 2>&1
