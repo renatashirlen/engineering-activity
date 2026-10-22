@@ -31,7 +31,17 @@ Atividade de desenvolvimento no **Portal RSC**, sistema web de gestão do proces
 
 ## Tecnologias
 
-Java 21, Spring Boot 3, PostgreSQL, Flyway, Testcontainers, Angular 21 (signals, standalone), Vitest, Playwright, GitLab CI.
+![Java 21](assets/technologies/java.svg)
+![Spring Boot 3](assets/technologies/spring-boot.svg)
+![Angular 21](assets/technologies/angular.svg)
+![PostgreSQL](assets/technologies/postgresql.svg)
+![Flyway](assets/technologies/flyway.svg)
+![Testcontainers](assets/technologies/testcontainers.svg)
+![Vitest](assets/technologies/vitest.svg)
+![Playwright](assets/technologies/playwright.svg)
+![GitLab CI](assets/technologies/gitlab-ci.svg)
+
+Angular com signals e componentes standalone. Badges da stack do Portal RSC; este painel usa Python, SVG e HTML/JavaScript.
 
 ## Sobre estes dados
 

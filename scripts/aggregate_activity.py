@@ -8,6 +8,7 @@ Uso:
   aggregate_activity.py --repo ~/desenvolvimento/rsc-tae --author a@x.br [--author b@x.br] [--write]
 """
 import argparse
+import math
 import json
 import re
 import subprocess
@@ -92,38 +93,54 @@ def current_month():
 
 STYLE = (
     "<style>"
-    ".bg{fill:#F5E9FF}.t{fill:#171224}.g{stroke:#d0d7de}.b{fill:#7C3AED}.c{fill:#7C3AED}"
-    "@media (prefers-color-scheme:dark){.bg{fill:#171224}.t{fill:#F5E9FF}.g{stroke:#30363d}"
+    ".bg{fill:#F5E9FF}.t{fill:#171224}.g{stroke:#887496}.b{fill:#7C3AED}.c{fill:#7C3AED}"
+    "@media (prefers-color-scheme:dark){.bg{fill:#171224}.t{fill:#F5E9FF}.g{stroke:#887496}"
     ".b{fill:#C084FC}.c{fill:#F9A8D4}}"
     "</style>"
 )
 
 
-def svg(months):
-    w, h, pad, bw = 60 + 56 * len(months), 236, 30, 36
-    now = current_month()
-    top = max((m["commits"] for m in months.values()), default=1) or 1
-    area = h - 2 * pad - 20
-    base = h - pad
+def axis_scale(maximum):
+    """About five intervals with round integer ticks and room for the largest bar."""
+    raw = max(maximum, 1) / 5
+    power = 10 ** math.floor(math.log10(raw))
+    step = max(1, next(n * power for n in (1, 2, 5, 10) if n * power >= raw))
+    return math.ceil(max(maximum, 1) / step) * step, step
+
+
+def svg(months, snapshot_date=None):
+    w, h, left, right, top, base = max(560, 100 + 76 * len(months)), 340, 72, 24, 60, 260
+    now = snapshot_date[:7] if snapshot_date else current_month()
+    ceiling, step = axis_scale(max((m["commits"] for m in months.values()), default=0))
+    area = base - top
     grid = []
-    for frac in (0.5, 1.0):
-        gy = base - int(area * frac)
-        grid.append(f'<line class="g" x1="40" x2="{w - 10}" y1="{gy}" y2="{gy}" stroke-dasharray="3 3"/>'
-                    f'<text class="t" x="34" y="{gy + 4}" text-anchor="end" font-size="10">{round(top * frac)}</text>')
+    for tick in range(0, int(ceiling) + 1, int(step)):
+        gy = base - area * tick / ceiling
+        grid.append(f'<line class="g" x1="{left}" x2="{w - right}" y1="{gy}" y2="{gy}" stroke-dasharray="3 3"/>'
+                    f'<text class="t" x="{left - 10}" y="{gy + 4}" text-anchor="end" font-size="13">{tick}</text>')
     bars = []
-    for i, (k, m) in enumerate(months.items()):
-        bh = int(area * m["commits"] / top)
-        x, y = 50 + i * 56, base - bh
+    slot = (w - left - right) / max(len(months), 1)
+    bw = min(48, slot * .6)
+    for i, (k, m) in enumerate(sorted(months.items())):
+        bh = area * m["commits"] / ceiling
+        x, y = left + (i + .5) * slot - bw / 2, base - bh
         cls = "c" if k == now else "b"
         bars.append(f'<rect class="{cls}" x="{x}" y="{y}" width="{bw}" height="{bh}" rx="3"/>'
-                    f'<text class="t" x="{x + bw / 2}" y="{y - 4}" text-anchor="middle" font-size="11">{m["commits"]}</text>'
-                    f'<text class="t" x="{x + bw / 2}" y="{h - 14}" text-anchor="middle" font-size="11">{label(k, k == now)}</text>')
-    note = (f'<text class="t" x="40" y="{h - 2}" font-size="10">* mês parcial</text>'
-            if now in months else "")
+                    f'<text class="t" x="{x + bw / 2}" y="{y - 8}" text-anchor="middle" font-size="14">{m["commits"]}</text>'
+                    f'<text class="t" x="{x + bw / 2}" y="{base + 23}" text-anchor="middle" font-size="13">{label(k, k == now)}</text>')
+    note = (f'<text class="t" x="{left}" y="330" font-size="12">* mês parcial no snapshot</text>' if now in months else "")
+    description = "; ".join(f"{label(k, k == now)}: {m['commits']} commits" for k, m in sorted(months.items())) or "Sem atividade"
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" role="img" '
-            f'aria-label="Commits por mês, sem merges e sem bumps de versão" font-family="sans-serif">'
-            f'<title>Commits por mês (sem merges e sem bumps)</title>{STYLE}'
-            f'<rect class="bg" width="{w}" height="{h}" rx="8"/>{"".join(grid)}{"".join(bars)}{note}</svg>\n')
+            f'aria-labelledby="title desc" font-family="sans-serif">'
+            f'<title id="title">Commits por mês (sem merges e sem bumps)</title>'
+            f'<desc id="desc">Eixo horizontal: mês/ano. Eixo vertical: quantidade de commits. {description}.</desc>{STYLE}'
+            f'<rect class="bg" width="{w}" height="{h}" rx="8"/>'
+            f'<text class="t" x="{left}" y="28" font-size="18" font-weight="700">Commits por mês</text>'
+            f'{"".join(grid)}<path class="g" d="M{left} {top}V{base}H{w-right}" fill="none"/>'
+            f'{"".join(bars)}'
+            f'<text class="t" x="20" y="160" transform="rotate(-90 20 160)" text-anchor="middle" font-size="14">Quantidade de commits</text>'
+            f'<text class="t" x="{(left+w-right)/2}" y="309" text-anchor="middle" font-size="14">Mês/ano</text>'
+            f'{note}</svg>\n')
 
 
 def write_if_changed(path, text):
@@ -198,7 +215,7 @@ def main(argv=None):
         return 0
     out = Path(a.out)
     c1 = write_if_changed(out / "data" / "activity-summary.json", text)
-    c2 = write_if_changed(out / "assets" / "activity-chart.svg", svg(months))
+    c2 = write_if_changed(out / "assets" / "activity-chart.svg", svg(months, summary["snapshot_date"]))
     c3 = update_readme(out / "README.md", summary)
     c4 = write_if_changed(out / "assets" / "engineering-activity-card.svg", card(summary))
     print("atualizado" if c1 or c2 or c3 or c4 else "sem mudanças")
