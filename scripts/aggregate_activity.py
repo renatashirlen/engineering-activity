@@ -13,6 +13,7 @@ import re
 import subprocess
 import sys
 from collections import defaultdict
+from datetime import date
 from pathlib import Path
 
 BUMP = re.compile(r"^chore\((release|docker)\)|\bbump\b|ajusta vers[aã]o", re.I)
@@ -50,8 +51,21 @@ def aggregate(commits):
     return {k: months[k] for k in sorted(months)}
 
 
+MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
+
+
+def label(key, partial=False):
+    ano, mes = key.split("-")
+    return f"{MESES[int(mes) - 1]}/{ano[2:]}" + ("*" if partial else "")
+
+
+def current_month():
+    return date.today().strftime("%Y-%m")
+
+
 def svg(months):
-    w, h, pad, bw = 40 + 56 * len(months), 220, 30, 36
+    w, h, pad, bw = 40 + 56 * len(months), 236, 30, 36
+    now = current_month()
     top = max((m["commits"] for m in months.values()), default=1) or 1
     bars = []
     for i, (k, m) in enumerate(months.items()):
@@ -59,11 +73,14 @@ def svg(months):
         x, y = 30 + i * 56, h - pad - bh
         bars.append(f'<rect x="{x}" y="{y}" width="{bw}" height="{bh}" fill="#2563eb"/>'
                     f'<text x="{x + bw / 2}" y="{y - 4}" text-anchor="middle" font-size="11">{m["commits"]}</text>'
-                    f'<text x="{x + bw / 2}" y="{h - 10}" text-anchor="middle" font-size="11">{k}</text>')
+                    f'<text x="{x + bw / 2}" y="{h - 10}" text-anchor="middle" font-size="11">{label(k, k == now)}</text>')
+    note = (f'<text x="30" y="{h - 1}" font-size="10">* mês parcial</text>'
+            if now in months else "")
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" role="img" '
             f'aria-label="Commits por mês, sem merges e sem bumps de versão" '
             f'font-family="sans-serif" fill="#111">'
-            f'<title>Commits por mês (sem merges e sem bumps)</title>{"".join(bars)}</svg>\n')
+            f'<title>Commits por mês (sem merges e sem bumps)</title>{"".join(bars)}'
+            f'{note}</svg>\n')
 
 
 def write_if_changed(path, text):
@@ -77,7 +94,7 @@ def write_if_changed(path, text):
 def readme_table(summary):
     rows = ["| Mês | Commits | Com assistência de IA registrada |", "|---|---:|---:|"]
     for k, m in summary["meses"].items():
-        rows.append(f"| {k} | {m['commits']} | {m['com_ia']} |")
+        rows.append(f"| {label(k, k == current_month())} | {m['commits']} | {m['com_ia']} |")
     rows.append(f"| **Total** | **{summary['total_commits']}** | **{summary['total_com_ia']}** |")
     return "\n".join(rows)
 

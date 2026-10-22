@@ -16,13 +16,13 @@
       "bumps_excluidos": 46
     },
     "2026-10": {
-      "commits": 239,
-      "com_ia": 110,
+      "commits": 240,
+      "com_ia": 111,
       "bumps_excluidos": 40
     }
   },
-  "total_commits": 579,
-  "total_com_ia": 151,
+  "total_commits": 580,
+  "total_com_ia": 152,
   "primeiro_mes": "2026-07",
   "criterios": "sem merges, sem bumps de versão, hashes únicos entre ramos"
 }

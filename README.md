@@ -9,17 +9,17 @@ Atividade de desenvolvimento no **Portal RSC**, sistema web de gestão do proces
 <!-- stats:start -->
 | Mês | Commits | Com assistência de IA registrada |
 |---|---:|---:|
-| 2026-07 | 15 | 0 |
-| 2026-08 | 142 | 1 |
-| 2026-09 | 183 | 40 |
-| 2026-10 | 239 | 110 |
-| **Total** | **579** | **151** |
+| jul/26 | 15 | 0 |
+| ago/26 | 142 | 1 |
+| set/26 | 183 | 40 |
+| out/26* | 240 | 111 |
+| **Total** | **580** | **152** |
 <!-- stats:end -->
 
 - Commits de autoria própria, de todos os ramos, contados uma vez por hash.
 - **Excluídos:** commits de merge e de bump de versão.
 - **"Assistência de IA registrada":** o desenvolvimento do projeto conta com ferramentas de IA (*AI-assisted*). Esta coluna mostra apenas os commits que registraram isso explicitamente no histórico, portanto é um piso, não o total de uso.
-- O último mês é **parcial**. O histórico disponível começa em julho/2026.
+- O mês marcado com `*` é **parcial**. O histórico disponível começa em julho/2026.
 
 ## Tecnologias
 
