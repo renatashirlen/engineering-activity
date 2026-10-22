@@ -6,9 +6,9 @@
 <title>Engineering Activity</title>
 <meta name="description" content="Atividade mensal de desenvolvimento no Portal RSC: commits e issues fechadas.">
 <style>
-  :root { --bg:#fff; --fg:#1f2328; --muted:#59636e; --line:#d0d7de; --bar:#2563eb; --cur:#0f766e; --card:#f6f8fa; }
+  :root { --bg:#F5E9FF; --fg:#171224; --muted:#59466e; --line:#d0d7de; --bar:#7C3AED; --cur:#7C3AED; --card:#fff; }
   @media (prefers-color-scheme: dark) {
-    :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --line:#30363d; --bar:#58a6ff; --cur:#3fb9a8; --card:#151b23; }
+    :root { --bg:#171224; --fg:#F5E9FF; --muted:#C084FC; --line:#30363d; --bar:#C084FC; --cur:#F9A8D4; --card:#241b36; }
   }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, sans-serif; }
@@ -23,6 +23,7 @@
   .bar { width:100%; max-width:64px; background:var(--bar); border-radius:4px 4px 0 0; }
   .bar.cur { background:var(--cur); } .val { font-size:.85rem; margin-bottom:4px; }
   .labels { display:flex; gap:12px; } .labels span { flex:1; text-align:center; font-size:.85rem; color:var(--muted); padding-top:6px; }
+  .table-scroll { overflow-x:auto; }
   table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
   th, td { padding:8px 10px; border-bottom:1px solid var(--line); text-align:right; } th:first-child, td:first-child { text-align:left; }
   caption { text-align:left; color:var(--muted); padding-bottom:6px; }
@@ -39,28 +40,30 @@
   <div class="chart" id="chart" role="img" aria-label="Gráfico de barras de commits por mês; os mesmos valores estão na tabela abaixo"></div>
   <div class="labels" id="labels" aria-hidden="true"></div>
   <h2>Detalhe</h2>
-  <table id="tabela"><caption>Commits (sem merges e sem bumps), dias ativos, versões geradas e issues fechadas por mês</caption>
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Indicadores mensais; role horizontalmente em telas pequenas"><table id="tabela"><caption>Commits (sem merges e sem bumps), dias ativos, versões geradas e issues fechadas por mês</caption>
     <thead><tr><th scope="col">Mês</th><th scope="col">Commits</th><th scope="col">Dias ativos</th><th scope="col">Versões</th><th scope="col">Issues fechadas</th><th scope="col">Mediana até fechar (dias)</th></tr></thead>
-    <tbody></tbody></table>
-  <p class="note" id="nota">Carregando…</p>
+    <tbody></tbody></table></div>
+  <noscript>Ative JavaScript para o painel ou consulte os <a href="https://github.com/renatashirlen/engineering-activity#indicadores">indicadores no README</a>.</noscript>
+  <p class="note" id="nota" role="status">Carregando…</p>
   <p class="note">Nenhum código, mensagem de commit ou dado de outras pessoas do repositório institucional foi copiado. O projeto é desenvolvido com apoio de ferramentas de IA (AI-assisted). <a href="https://github.com/renatashirlen/engineering-activity">Código deste painel</a>.</p>
 </main>
 <script>
 const MES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 const rot = (k, parcial) => { const [a, m] = k.split("-"); return MES[+m - 1] + "/" + a.slice(2) + (parcial ? "*" : ""); };
-const agora = new Date().toISOString().slice(0, 7);
-fetch("data/activity-summary.json").then(r => r.json()).then(d => {
+
+fetch("data/activity-summary.json").then(r => { if (!r.ok) throw new Error("Dados indisponíveis"); return r.json(); }).then(d => {
+  const agora = (d.snapshot_date || "").slice(0, 7);
   const meses = Object.entries(d.meses), iss = d.issues || {};
   const topo = Math.max(...meses.map(([, m]) => m.commits), 1);
   const totalIss = Object.values(iss).reduce((s, i) => s + i.fechadas, 0);
   const kpi = (v, t) => `<div class="kpi"><b>${v}</b><span>${t}</span></div>`;
-  document.getElementById("kpis").innerHTML = kpi(d.total_commits, "commits") + kpi(totalIss || "–", "issues fechadas") + kpi(d.total_dias_ativos ?? "–", "dias com atividade") + kpi(d.total_versoes ?? "–", "versões (bumps)") + kpi(meses.length, "meses de histórico");
+  document.getElementById("kpis").innerHTML = kpi(d.total_commits, "commits") + kpi(d.issues ? totalIss : "–", "issues fechadas") + kpi(d.total_dias_ativos ?? "–", "dias com atividade") + kpi(d.total_versoes ?? "–", "versões (bumps)") + kpi(meses.length, "meses de histórico");
   document.getElementById("chart").innerHTML = meses.map(([k, m]) =>
     `<div class="col"><span class="val">${m.commits}</span><div class="bar${k === agora ? " cur" : ""}" style="height:${Math.round(m.commits / topo * 180)}px"></div></div>`).join("");
   document.getElementById("labels").innerHTML = meses.map(([k]) => `<span>${rot(k, k === agora)}</span>`).join("");
   document.querySelector("#tabela tbody").innerHTML = meses.map(([k, m]) => {
     const i = iss[k]; return `<tr><th scope="row">${rot(k, k === agora)}</th><td>${m.commits}</td><td>${m.dias_ativos ?? "–"}</td><td>${m.versoes ?? "–"}</td><td>${i ? i.fechadas : "–"}</td><td>${i ? i.mediana_dias : "–"}</td></tr>`; }).join("");
-  document.getElementById("nota").textContent = (meses.some(([k]) => k === agora) ? "* mês parcial. " : "") + "Histórico disponível desde " + rot(d.primeiro_mes) + ".";
+  document.getElementById("nota").textContent = (meses.some(([k]) => k === agora) ? "* mês parcial. " : "") + "Histórico disponível desde " + rot(d.primeiro_mes) + ". Snapshot: " + (d.snapshot_date || "data não registrada") + ". Contagens de atividade, não produtividade.";
 }).catch(() => { document.getElementById("nota").textContent = "Não foi possível carregar os dados."; });
 </script>
 </body>

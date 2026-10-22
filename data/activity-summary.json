@@ -44,5 +44,6 @@
       "mediana_dias": 1.1
     }
   },
-  "criterio_issues": "issues abertas por mim e já fechadas; mês do fechamento"
+  "criterio_issues": "issues abertas por mim e já fechadas; mês do fechamento",
+  "snapshot_date": "2026-10-22"
 }

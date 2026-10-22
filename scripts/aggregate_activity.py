@@ -16,6 +16,7 @@ from collections import defaultdict
 from datetime import date, datetime
 from statistics import median
 from pathlib import Path
+from render_card import card
 
 BUMP = re.compile(r"^chore(\([^)]*\))?!?:\s*(bump\b|ajusta vers[aã]o|prepara vers[aã]o)", re.I)
 SEP_R, SEP_C = "\x1e", "\x1f"
@@ -91,9 +92,9 @@ def current_month():
 
 STYLE = (
     "<style>"
-    ".bg{fill:#fff}.t{fill:#111}.g{stroke:#d0d7de}.b{fill:#2563eb}.c{fill:#0f766e}"
-    "@media (prefers-color-scheme:dark){.bg{fill:#0d1117}.t{fill:#e6edf3}.g{stroke:#30363d}"
-    ".b{fill:#58a6ff}.c{fill:#3fb9a8}}"
+    ".bg{fill:#F5E9FF}.t{fill:#171224}.g{stroke:#d0d7de}.b{fill:#7C3AED}.c{fill:#7C3AED}"
+    "@media (prefers-color-scheme:dark){.bg{fill:#171224}.t{fill:#F5E9FF}.g{stroke:#30363d}"
+    ".b{fill:#C084FC}.c{fill:#F9A8D4}}"
     "</style>"
 )
 
@@ -127,9 +128,9 @@ def svg(months):
 
 def write_if_changed(path, text):
     path.parent.mkdir(parents=True, exist_ok=True)
-    if path.exists() and path.read_text() == text:
+    if path.exists() and path.read_text(encoding="utf-8") == text:
         return False
-    path.write_text(text)
+    path.write_text(text, encoding="utf-8")
     return True
 
 
@@ -149,7 +150,7 @@ def update_readme(path, summary):
     start, end = "<!-- stats:start -->", "<!-- stats:end -->"
     if not path.exists():
         return False
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
     if start not in text or end not in text:
         return False
     head, rest = text.split(start, 1)
@@ -178,12 +179,17 @@ def main(argv=None):
         "criterios": "sem merges, sem bumps de versão, hashes únicos entre ramos",
     }
     if a.issues_json:
-        summary["issues"] = aggregate_issues(json.loads(Path(a.issues_json).read_text()))
+        summary["issues"] = aggregate_issues(json.loads(Path(a.issues_json).read_text(encoding="utf-8")))
         summary["criterio_issues"] = "issues abertas por mim e já fechadas; mês do fechamento"
+    # Preserve the reviewed snapshot date while counts are unchanged.
+    published = Path(a.out) / "data" / "activity-summary.json"
+    previous = json.loads(published.read_text(encoding="utf-8")) if published.exists() else {}
+    previous_date = previous.pop("snapshot_date", None)
+    summary["snapshot_date"] = previous_date if previous == summary and previous_date else date.today().isoformat()
     text = json.dumps(summary, ensure_ascii=False, indent=2) + "\n"
     if a.check:
         atual = Path(a.out) / "data" / "activity-summary.json"
-        mudou = not atual.exists() or atual.read_text() != text
+        mudou = not atual.exists() or atual.read_text(encoding="utf-8") != text
         print("mudou" if mudou else "sem mudanças")
         return 10 if mudou else 0
     if not a.write:
@@ -194,7 +200,8 @@ def main(argv=None):
     c1 = write_if_changed(out / "data" / "activity-summary.json", text)
     c2 = write_if_changed(out / "assets" / "activity-chart.svg", svg(months))
     c3 = update_readme(out / "README.md", summary)
-    print("atualizado" if c1 or c2 or c3 else "sem mudanças")
+    c4 = write_if_changed(out / "assets" / "engineering-activity-card.svg", card(summary))
+    print("atualizado" if c1 or c2 or c3 or c4 else "sem mudanças")
     return 0
 
 
