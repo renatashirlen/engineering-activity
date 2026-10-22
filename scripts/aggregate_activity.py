@@ -117,6 +117,8 @@ def main(argv=None):
     ap.add_argument("--author", action="append", required=True, help="e-mail verificado (repetível)")
     ap.add_argument("--out", default=str(Path(__file__).resolve().parent.parent))
     ap.add_argument("--write", action="store_true")
+    ap.add_argument("--check", action="store_true",
+                    help="não grava; sai com código 10 se os números diferem dos publicados")
     a = ap.parse_args(argv)
 
     months = aggregate(git_log(a.repo, a.author))
@@ -128,6 +130,11 @@ def main(argv=None):
         "criterios": "sem merges, sem bumps de versão, hashes únicos entre ramos",
     }
     text = json.dumps(summary, ensure_ascii=False, indent=2) + "\n"
+    if a.check:
+        atual = Path(a.out) / "data" / "activity-summary.json"
+        mudou = not atual.exists() or atual.read_text() != text
+        print("mudou" if mudou else "sem mudanças")
+        return 10 if mudou else 0
     if not a.write:
         print(text)
         print("(dry-run: nada gravado)", file=sys.stderr)
