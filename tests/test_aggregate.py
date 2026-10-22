@@ -12,6 +12,8 @@ def sh(repo, *args, env=None):
 def make_repo():
     d = tempfile.mkdtemp()
     sh(d, "init", "-q", "-b", "main")
+    sh(d, "config", "user.name", "Synthetic Test")
+    sh(d, "config", "user.email", "test@example.invalid")
     def commit(msg, email, date):
         env = {"GIT_AUTHOR_NAME": "T", "GIT_AUTHOR_EMAIL": email, "GIT_COMMITTER_NAME": "T",
                "GIT_COMMITTER_EMAIL": email, "GIT_AUTHOR_DATE": date, "GIT_COMMITTER_DATE": date}
@@ -42,7 +44,7 @@ def test_idempotente_e_dry_run():
     ag.main(base)
     assert not (Path(out) / "data").exists()
     assert ag.main(base + ["--write"]) == 0
-    first = (Path(out) / "data/activity-summary.json").read_text()
+    first = (Path(out) / "data/activity-summary.json").read_text(encoding="utf-8")
     assert "eu@x.br" not in first and "feat" not in first
     assert not ag.write_if_changed(Path(out) / "data/activity-summary.json", first)
 
