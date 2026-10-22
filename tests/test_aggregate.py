@@ -45,3 +45,44 @@ def test_idempotente_e_dry_run():
     first = (Path(out) / "data/activity-summary.json").read_text()
     assert "eu@x.br" not in first and "feat" not in first
     assert not ag.write_if_changed(Path(out) / "data/activity-summary.json", first)
+
+
+def test_regex_de_bump_so_pega_commits_de_versao():
+    bumps = ["chore(release): bump de versao para 0.1.100 (#1)", "chore: bump 0.1.198 e CHANGELOG",
+             "chore(docker): bump versão da imagem", "chore(release): prepara versão 0.1.170 (#2)",
+             "chore(frontend): ajusta versão para 0.1.90"]
+    reais = ["fix: interceptor e bump de dependências com CVEs", "feat: tela nova",
+             "chore: consolida MRs com bump único e renumera migration"]
+    assert all(ag.BUMP.search(s) for s in bumps)
+    assert not any(ag.BUMP.search(s) for s in reais)
+
+
+def test_rotulo_de_mes_e_parcial():
+    assert ag.label("2026-07") == "jul/26"
+    assert ag.label("2026-10", True) == "out/26*"
+
+
+def test_svg_com_tema_claro_e_escuro_e_mes_parcial():
+    meses = {"2026-07": {"commits": 10, "com_ia": 0, "bumps_excluidos": 0}}
+    out = ag.svg(meses)
+    assert "prefers-color-scheme:dark" in out and 'class="bg"' in out
+    assert "* mês parcial" not in out or ag.current_month() in meses
+
+
+def test_check_sinaliza_mudanca_sem_gravar():
+    d, c = make_repo()
+    c("feat: a", "eu@x.br", "2026-08-01T10:00:00")
+    out = tempfile.mkdtemp()
+    base = ["--repo", d, "--author", "eu@x.br", "--out", out]
+    assert ag.main(base + ["--check"]) == 10
+    assert not (Path(out) / "data").exists()
+    ag.main(base + ["--write"])
+    assert ag.main(base + ["--check"]) == 0
+    c("feat: b", "eu@x.br", "2026-08-02T10:00:00")
+    assert ag.main(base + ["--check"]) == 10
+
+
+def test_periodo_sem_commits_do_autor():
+    d, c = make_repo()
+    c("feat: de outra pessoa", "outro@x.br", "2026-08-01T10:00:00")
+    assert ag.aggregate(ag.git_log(d, ["eu@x.br"])) == {}

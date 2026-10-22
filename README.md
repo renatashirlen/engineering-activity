@@ -2,6 +2,8 @@
 
 Atividade de desenvolvimento no **Portal RSC**, sistema web de gestão do processo de Reconhecimento de Saberes e Competências (RSC) da Universidade de Brasília, hospedado no GitLab institucional da UnB.
 
+Desenvolvedora full stack (Java/Spring Boot e Angular), atuando em um sistema real de gestão de processos em produção na universidade: backend, frontend, banco, testes automatizados e entrega contínua.
+
 ![Commits por mês no Portal RSC](assets/activity-chart.svg)
 
 ## Indicadores
@@ -11,14 +13,14 @@ Atividade de desenvolvimento no **Portal RSC**, sistema web de gestão do proces
 |---|---:|---:|
 | jul/26 | 15 | 0 |
 | ago/26 | 142 | 1 |
-| set/26 | 183 | 40 |
-| out/26* | 240 | 111 |
-| **Total** | **580** | **152** |
+| set/26 | 184 | 40 |
+| out/26* | 241 | 108 |
+| **Total** | **582** | **149** |
 <!-- stats:end -->
 
 - Commits de autoria própria, de todos os ramos, contados uma vez por hash.
 - **Excluídos:** commits de merge e de bump de versão.
-- **"Assistência de IA registrada":** o desenvolvimento do projeto conta com ferramentas de IA (*AI-assisted*). Esta coluna mostra apenas os commits que registraram isso explicitamente no histórico, portanto é um piso, não o total de uso.
+- **"Assistência de IA registrada":** o projeto é desenvolvido com apoio de ferramentas de IA (*AI-assisted*). A coluna conta só os commits que registraram isso no histórico; é um piso, não o total de uso.
 - O mês marcado com `*` é **parcial**. O histórico disponível começa em julho/2026.
 
 ## Tecnologias

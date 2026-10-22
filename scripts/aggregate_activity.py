@@ -16,7 +16,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
-BUMP = re.compile(r"^chore\((release|docker)\)|\bbump\b|ajusta vers[aã]o", re.I)
+BUMP = re.compile(r"^chore(\([^)]*\))?!?:\s*(bump\b|ajusta vers[aã]o|prepara vers[aã]o)", re.I)
 AI = re.compile(r"^co-authored-by:.*(claude|codex|gemini|anthropic|openai)", re.I | re.M)
 SEP_R, SEP_C = "\x1e", "\x1f"
 
@@ -63,24 +63,40 @@ def current_month():
     return date.today().strftime("%Y-%m")
 
 
+STYLE = (
+    "<style>"
+    ".bg{fill:#fff}.t{fill:#111}.g{stroke:#d0d7de}.b{fill:#2563eb}.c{fill:#0f766e}"
+    "@media (prefers-color-scheme:dark){.bg{fill:#0d1117}.t{fill:#e6edf3}.g{stroke:#30363d}"
+    ".b{fill:#58a6ff}.c{fill:#3fb9a8}}"
+    "</style>"
+)
+
+
 def svg(months):
-    w, h, pad, bw = 40 + 56 * len(months), 236, 30, 36
+    w, h, pad, bw = 60 + 56 * len(months), 236, 30, 36
     now = current_month()
     top = max((m["commits"] for m in months.values()), default=1) or 1
+    area = h - 2 * pad - 20
+    base = h - pad
+    grid = []
+    for frac in (0.5, 1.0):
+        gy = base - int(area * frac)
+        grid.append(f'<line class="g" x1="40" x2="{w - 10}" y1="{gy}" y2="{gy}" stroke-dasharray="3 3"/>'
+                    f'<text class="t" x="34" y="{gy + 4}" text-anchor="end" font-size="10">{round(top * frac)}</text>')
     bars = []
     for i, (k, m) in enumerate(months.items()):
-        bh = int((h - 2 * pad - 20) * m["commits"] / top)
-        x, y = 30 + i * 56, h - pad - bh
-        bars.append(f'<rect x="{x}" y="{y}" width="{bw}" height="{bh}" fill="#2563eb"/>'
-                    f'<text x="{x + bw / 2}" y="{y - 4}" text-anchor="middle" font-size="11">{m["commits"]}</text>'
-                    f'<text x="{x + bw / 2}" y="{h - 10}" text-anchor="middle" font-size="11">{label(k, k == now)}</text>')
-    note = (f'<text x="30" y="{h - 1}" font-size="10">* mês parcial</text>'
+        bh = int(area * m["commits"] / top)
+        x, y = 50 + i * 56, base - bh
+        cls = "c" if k == now else "b"
+        bars.append(f'<rect class="{cls}" x="{x}" y="{y}" width="{bw}" height="{bh}" rx="3"/>'
+                    f'<text class="t" x="{x + bw / 2}" y="{y - 4}" text-anchor="middle" font-size="11">{m["commits"]}</text>'
+                    f'<text class="t" x="{x + bw / 2}" y="{h - 14}" text-anchor="middle" font-size="11">{label(k, k == now)}</text>')
+    note = (f'<text class="t" x="40" y="{h - 2}" font-size="10">* mês parcial</text>'
             if now in months else "")
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" role="img" '
-            f'aria-label="Commits por mês, sem merges e sem bumps de versão" '
-            f'font-family="sans-serif" fill="#111">'
-            f'<title>Commits por mês (sem merges e sem bumps)</title>{"".join(bars)}'
-            f'{note}</svg>\n')
+            f'aria-label="Commits por mês, sem merges e sem bumps de versão" font-family="sans-serif">'
+            f'<title>Commits por mês (sem merges e sem bumps)</title>{STYLE}'
+            f'<rect class="bg" width="{w}" height="{h}" rx="8"/>{"".join(grid)}{"".join(bars)}{note}</svg>\n')
 
 
 def write_if_changed(path, text):
