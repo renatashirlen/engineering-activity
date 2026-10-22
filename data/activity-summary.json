@@ -2,27 +2,37 @@
   "meses": {
     "2026-07": {
       "commits": 15,
-      "com_ia": 0,
       "bumps_excluidos": 0
     },
     "2026-08": {
       "commits": 142,
-      "com_ia": 1,
       "bumps_excluidos": 29
     },
     "2026-09": {
       "commits": 184,
-      "com_ia": 40,
       "bumps_excluidos": 45
     },
     "2026-10": {
       "commits": 241,
-      "com_ia": 108,
       "bumps_excluidos": 39
     }
   },
   "total_commits": 582,
-  "total_com_ia": 149,
   "primeiro_mes": "2026-07",
-  "criterios": "sem merges, sem bumps de versão, hashes únicos entre ramos"
+  "criterios": "sem merges, sem bumps de versão, hashes únicos entre ramos",
+  "issues": {
+    "2026-08": {
+      "fechadas": 100,
+      "mediana_dias": 1.9
+    },
+    "2026-09": {
+      "fechadas": 127,
+      "mediana_dias": 1.0
+    },
+    "2026-10": {
+      "fechadas": 95,
+      "mediana_dias": 1.1
+    }
+  },
+  "criterio_issues": "issues abertas por mim e já fechadas; mês do fechamento"
 }

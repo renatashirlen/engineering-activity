@@ -8,7 +8,12 @@ CONF="${ATIVIDADE_CONF:-$HOME/.config/engineering-activity.env}"  # fora do repo
 AUTOR="${ATIVIDADE_AUTOR:?defina ATIVIDADE_AUTOR em $CONF}"
 AVISO="$HOME/engineering-activity-aviso.txt"
 
-python3 "$AQUI/scripts/aggregate_activity.py" --repo "$REPO" --author "$AUTOR" --out "$AQUI" --check >/dev/null 2>&1
+PRIV="${ATIVIDADE_PRIVADO:-$AQUI/../engineering-activity-privado}"  # exportador e dados privados (fora do repositório)
+ISS=()
+if [ -f "$PRIV/export_issues.py" ]; then
+  python3 "$PRIV/export_issues.py" >/dev/null 2>&1 && ISS=(--issues-json "$PRIV/issues-export.json")
+fi
+python3 "$AQUI/scripts/aggregate_activity.py" --repo "$REPO" --author "$AUTOR" --out "$AQUI" "${ISS[@]}" --check >/dev/null 2>&1
 rc=$?
 if [ "$rc" -eq 10 ]; then
   msg="engineering-activity: há números novos. Rode scripts/aggregate_activity.py --write, revise o diff, faça commit e push."

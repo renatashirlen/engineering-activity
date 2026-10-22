@@ -30,7 +30,7 @@ def test_exclui_merge_bump_e_outros_autores():
     sh(d, "checkout", "-q", "main")
     sh(d, "merge", "-q", "--no-ff", "f", "-m", "Merge f")
     r = ag.aggregate(ag.git_log(d, ["EU@x.br"]))
-    assert r["2026-08"] == {"commits": 2, "com_ia": 1, "bumps_excluidos": 1}
+    assert r["2026-08"] == {"commits": 2, "bumps_excluidos": 1}
     assert r["2026-09"]["commits"] == 1
 
 
@@ -63,7 +63,7 @@ def test_rotulo_de_mes_e_parcial():
 
 
 def test_svg_com_tema_claro_e_escuro_e_mes_parcial():
-    meses = {"2026-07": {"commits": 10, "com_ia": 0, "bumps_excluidos": 0}}
+    meses = {"2026-07": {"commits": 10, "bumps_excluidos": 0}}
     out = ag.svg(meses)
     assert "prefers-color-scheme:dark" in out and 'class="bg"' in out
     assert "* mês parcial" not in out or ag.current_month() in meses
@@ -86,3 +86,22 @@ def test_periodo_sem_commits_do_autor():
     d, c = make_repo()
     c("feat: de outra pessoa", "outro@x.br", "2026-08-01T10:00:00")
     assert ag.aggregate(ag.git_log(d, ["eu@x.br"])) == {}
+
+
+def test_issues_por_mes_com_mediana():
+    rows = [{"created_at": "2026-09-01T00:00:00Z", "closed_at": "2026-09-03T00:00:00Z"},
+            {"created_at": "2026-09-10T00:00:00Z", "closed_at": "2026-09-16T00:00:00Z"},
+            {"created_at": "2026-09-10T00:00:00Z", "closed_at": None}]
+    assert ag.aggregate_issues(rows) == {"2026-09": {"fechadas": 2, "mediana_dias": 4.0}}
+
+
+def test_saida_sem_dados_de_issues_individuais():
+    import json
+    d, c = make_repo()
+    c("feat: a", "eu@x.br", "2026-08-01T10:00:00")
+    out = tempfile.mkdtemp()
+    f = Path(out) / "x.json"
+    f.write_text(json.dumps([{"created_at": "2026-08-01T00:00:00Z", "closed_at": "2026-08-02T00:00:00Z"}]))
+    ag.main(["--repo", d, "--author", "eu@x.br", "--out", out, "--issues-json", str(f), "--write"])
+    texto = (Path(out) / "data/activity-summary.json").read_text()
+    assert "created_at" not in texto and "closed_at" not in texto and '"fechadas": 1' in texto

@@ -13,17 +13,17 @@ import re
 import subprocess
 import sys
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime
+from statistics import median
 from pathlib import Path
 
 BUMP = re.compile(r"^chore(\([^)]*\))?!?:\s*(bump\b|ajusta vers[aã]o|prepara vers[aã]o)", re.I)
-AI = re.compile(r"^co-authored-by:.*(claude|codex|gemini|anthropic|openai)", re.I | re.M)
 SEP_R, SEP_C = "\x1e", "\x1f"
 
 
 def git_log(repo, authors):
     cmd = ["git", "-C", str(repo), "log", "--all", "--no-merges",
-           f"--format={SEP_R}%H{SEP_C}%ae{SEP_C}%ad{SEP_C}%s{SEP_C}%b",
+           f"--format={SEP_R}%H{SEP_C}%ae{SEP_C}%ad{SEP_C}%s",
            "--date=format:%Y-%m"]
     out = subprocess.run(cmd, capture_output=True, text=True, check=True).stdout
     wanted = {a.lower() for a in authors}
@@ -31,24 +31,34 @@ def git_log(repo, authors):
     for rec in out.split(SEP_R):
         if not rec.strip():
             continue
-        h, email, month, subject, body = (rec.split(SEP_C) + [""] * 5)[:5]
+        h, email, month, subject = (rec.split(SEP_C) + [""] * 4)[:4]
         if h in seen or email.lower() not in wanted:
             continue
         seen.add(h)
-        yield month, subject, body
+        yield month, subject
 
 
 def aggregate(commits):
-    months = defaultdict(lambda: {"commits": 0, "com_ia": 0, "bumps_excluidos": 0})
-    for month, subject, body in commits:
+    months = defaultdict(lambda: {"commits": 0, "bumps_excluidos": 0})
+    for month, subject in commits:
         m = months[month]
         if BUMP.search(subject):
             m["bumps_excluidos"] += 1
             continue
         m["commits"] += 1
-        if AI.search(body):
-            m["com_ia"] += 1
     return {k: months[k] for k in sorted(months)}
+
+
+def aggregate_issues(rows):
+    """rows: [{"created_at": ISO, "closed_at": ISO}] -> contagem e mediana de dias por mês de fechamento."""
+    por_mes = defaultdict(list)
+    for r in rows:
+        if not r.get("closed_at"):
+            continue
+        ini = datetime.fromisoformat(r["created_at"].replace("Z", "+00:00"))
+        fim = datetime.fromisoformat(r["closed_at"].replace("Z", "+00:00"))
+        por_mes[fim.strftime("%Y-%m")].append(max((fim - ini).total_seconds() / 86400, 0))
+    return {k: {"fechadas": len(v), "mediana_dias": round(median(v), 1)} for k, v in sorted(por_mes.items())}
 
 
 MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"]
@@ -108,10 +118,14 @@ def write_if_changed(path, text):
 
 
 def readme_table(summary):
-    rows = ["| Mês | Commits | Com assistência de IA registrada |", "|---|---:|---:|"]
+    issues = summary.get("issues", {})
+    rows = ["| Mês | Commits | Issues fechadas | Mediana até fechar (dias) |", "|---|---:|---:|---:|"]
     for k, m in summary["meses"].items():
-        rows.append(f"| {label(k, k == current_month())} | {m['commits']} | {m['com_ia']} |")
-    rows.append(f"| **Total** | **{summary['total_commits']}** | **{summary['total_com_ia']}** |")
+        i = issues.get(k)
+        rows.append(f"| {label(k, k == current_month())} | {m['commits']} | "
+                    f"{i['fechadas'] if i else '–'} | {i['mediana_dias'] if i else '–'} |")
+    ti = sum(i["fechadas"] for i in issues.values())
+    rows.append(f"| **Total** | **{summary['total_commits']}** | **{ti if issues else '–'}** | |")
     return "\n".join(rows)
 
 
@@ -132,6 +146,7 @@ def main(argv=None):
     ap.add_argument("--repo", required=True)
     ap.add_argument("--author", action="append", required=True, help="e-mail verificado (repetível)")
     ap.add_argument("--out", default=str(Path(__file__).resolve().parent.parent))
+    ap.add_argument("--issues-json", help="exportação privada [{created_at, closed_at}] (fora do repositório)")
     ap.add_argument("--write", action="store_true")
     ap.add_argument("--check", action="store_true",
                     help="não grava; sai com código 10 se os números diferem dos publicados")
@@ -141,10 +156,12 @@ def main(argv=None):
     summary = {
         "meses": months,
         "total_commits": sum(m["commits"] for m in months.values()),
-        "total_com_ia": sum(m["com_ia"] for m in months.values()),
         "primeiro_mes": next(iter(months), None),
         "criterios": "sem merges, sem bumps de versão, hashes únicos entre ramos",
     }
+    if a.issues_json:
+        summary["issues"] = aggregate_issues(json.loads(Path(a.issues_json).read_text()))
+        summary["criterio_issues"] = "issues abertas por mim e já fechadas; mês do fechamento"
     text = json.dumps(summary, ensure_ascii=False, indent=2) + "\n"
     if a.check:
         atual = Path(a.out) / "data" / "activity-summary.json"

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engineering Activity</title>
+<meta name="description" content="Atividade mensal de desenvolvimento no Portal RSC: commits e issues fechadas.">
+<style>
+  :root { --bg:#fff; --fg:#1f2328; --muted:#59636e; --line:#d0d7de; --bar:#2563eb; --cur:#0f766e; --card:#f6f8fa; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --line:#30363d; --bar:#58a6ff; --cur:#3fb9a8; --card:#151b23; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:1.6rem; margin:0 0 4px; } h2 { font-size:1.1rem; margin:32px 0 8px; }
+  .sub { color:var(--muted); margin:0 0 24px; }
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+  .kpi b { display:block; font-size:1.7rem; } .kpi span { color:var(--muted); font-size:.9rem; }
+  .chart { display:flex; align-items:flex-end; gap:12px; height:220px; padding:8px 0 0; border-bottom:1px solid var(--line); }
+  .col { flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; height:100%; min-width:0; }
+  .bar { width:100%; max-width:64px; background:var(--bar); border-radius:4px 4px 0 0; }
+  .bar.cur { background:var(--cur); } .val { font-size:.85rem; margin-bottom:4px; }
+  .labels { display:flex; gap:12px; } .labels span { flex:1; text-align:center; font-size:.85rem; color:var(--muted); padding-top:6px; }
+  table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+  th, td { padding:8px 10px; border-bottom:1px solid var(--line); text-align:right; } th:first-child, td:first-child { text-align:left; }
+  caption { text-align:left; color:var(--muted); padding-bottom:6px; }
+  .note { color:var(--muted); font-size:.9rem; } a { color:var(--bar); }
+  :focus-visible { outline:2px solid var(--bar); outline-offset:2px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Engineering Activity</h1>
+  <p class="sub">Atividade no <strong>Portal RSC</strong> (UnB). Estatísticas externas ao GitHub, só contagens mensais.</p>
+  <section aria-label="Resumo" class="kpis" id="kpis"></section>
+  <h2>Commits por mês</h2>
+  <div class="chart" id="chart" role="img" aria-label="Gráfico de barras de commits por mês; os mesmos valores estão na tabela abaixo"></div>
+  <div class="labels" id="labels" aria-hidden="true"></div>
+  <h2>Detalhe</h2>
+  <table id="tabela"><caption>Commits (sem merges e sem bumps de versão) e issues fechadas por mês</caption>
+    <thead><tr><th scope="col">Mês</th><th scope="col">Commits</th><th scope="col">Issues fechadas</th><th scope="col">Mediana até fechar (dias)</th></tr></thead>
+    <tbody></tbody></table>
+  <p class="note" id="nota">Carregando…</p>
+  <p class="note">Nenhum código, mensagem de commit ou dado de outras pessoas do repositório institucional foi copiado. O projeto é desenvolvido com apoio de ferramentas de IA (AI-assisted). <a href="https://github.com/renatashirlen/engineering-activity">Código deste painel</a>.</p>
+</main>
+<script>
+const MES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const rot = (k, parcial) => { const [a, m] = k.split("-"); return MES[+m - 1] + "/" + a.slice(2) + (parcial ? "*" : ""); };
+const agora = new Date().toISOString().slice(0, 7);
+fetch("data/activity-summary.json").then(r => r.json()).then(d => {
+  const meses = Object.entries(d.meses), iss = d.issues || {};
+  const topo = Math.max(...meses.map(([, m]) => m.commits), 1);
+  const totalIss = Object.values(iss).reduce((s, i) => s + i.fechadas, 0);
+  const kpi = (v, t) => `<div class="kpi"><b>${v}</b><span>${t}</span></div>`;
+  document.getElementById("kpis").innerHTML = kpi(d.total_commits, "commits") + kpi(totalIss || "–", "issues fechadas") + kpi(meses.length, "meses de histórico");
+  document.getElementById("chart").innerHTML = meses.map(([k, m]) =>
+    `<div class="col"><span class="val">${m.commits}</span><div class="bar${k === agora ? " cur" : ""}" style="height:${Math.round(m.commits / topo * 180)}px"></div></div>`).join("");
+  document.getElementById("labels").innerHTML = meses.map(([k]) => `<span>${rot(k, k === agora)}</span>`).join("");
+  document.querySelector("#tabela tbody").innerHTML = meses.map(([k, m]) => {
+    const i = iss[k]; return `<tr><th scope="row">${rot(k, k === agora)}</th><td>${m.commits}</td><td>${i ? i.fechadas : "–"}</td><td>${i ? i.mediana_dias : "–"}</td></tr>`; }).join("");
+  document.getElementById("nota").textContent = (meses.some(([k]) => k === agora) ? "* mês parcial. " : "") + "Histórico disponível desde " + rot(d.primeiro_mes) + ".";
+}).catch(() => { document.getElementById("nota").textContent = "Não foi possível carregar os dados."; });
+</script>
+</body>
+</html>

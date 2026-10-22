@@ -1,27 +1,27 @@
 # Engineering Activity — Renata Shirlen
 
-Atividade de desenvolvimento no **Portal RSC**, sistema web de gestão do processo de Reconhecimento de Saberes e Competências (RSC) da Universidade de Brasília, hospedado no GitLab institucional da UnB.
+Software Developer — Java & Angular · Legacy Systems · PostgreSQL · AI-Assisted Development. Mais sobre mim no [perfil](https://github.com/renatashirlen).
 
-Desenvolvedora full stack (Java/Spring Boot e Angular), atuando em um sistema real de gestão de processos em produção na universidade: backend, frontend, banco, testes automatizados e entrega contínua.
+Atividade de desenvolvimento no **Portal RSC**, sistema web de gestão do processo de Reconhecimento de Saberes e Competências (RSC) da Universidade de Brasília, hospedado no GitLab institucional da UnB.
 
 ![Commits por mês no Portal RSC](assets/activity-chart.svg)
 
 ## Indicadores
 
 <!-- stats:start -->
-| Mês | Commits | Com assistência de IA registrada |
-|---|---:|---:|
-| jul/26 | 15 | 0 |
-| ago/26 | 142 | 1 |
-| set/26 | 184 | 40 |
-| out/26* | 241 | 108 |
-| **Total** | **582** | **149** |
+| Mês | Commits | Issues fechadas | Mediana até fechar (dias) |
+|---|---:|---:|---:|
+| jul/26 | 15 | – | – |
+| ago/26 | 142 | 100 | 1.9 |
+| set/26 | 184 | 127 | 1.0 |
+| out/26* | 241 | 95 | 1.1 |
+| **Total** | **582** | **322** | |
 <!-- stats:end -->
 
-- Commits de autoria própria, de todos os ramos, contados uma vez por hash.
-- **Excluídos:** commits de merge e de bump de versão.
-- **"Assistência de IA registrada":** o projeto é desenvolvido com apoio de ferramentas de IA (*AI-assisted*). A coluna conta só os commits que registraram isso no histórico; é um piso, não o total de uso.
-- O mês marcado com `*` é **parcial**. O histórico disponível começa em julho/2026.
+- **Commits:** de autoria própria, todos os ramos, uma vez por hash; sem merges e sem bumps de versão.
+- **Issues fechadas:** issues que abri e que já foram fechadas, no mês do fechamento. A mediana é o tempo entre abrir e fechar.
+- O projeto é desenvolvido com apoio de ferramentas de IA (*AI-assisted*).
+- O mês marcado com `*` é **parcial**. O histórico disponível começa em julho/2026 (as issues começam em agosto).
 
 ## Tecnologias
 
@@ -31,4 +31,4 @@ Java 21, Spring Boot 3, PostgreSQL, Flyway, Testcontainers, Angular 21 (signals,
 
 - São estatísticas de atividade **externa ao GitHub**; não aparecem no gráfico de contribuições daqui.
 - **Nenhum código, mensagem de commit, nome de arquivo ou dado de outras pessoas** do repositório institucional foi copiado. Só contagens mensais.
-- Geração local e manual: `python3 scripts/aggregate_activity.py --repo <caminho> --author <e-mail> --write` (sem `--write` é só simulação).
+- Geração local e manual: `python3 scripts/aggregate_activity.py --repo <caminho> --author <e-mail> --issues-json <arquivo-privado> --write` (sem `--write` é só simulação).
