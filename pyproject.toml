@@ -1,0 +1,5 @@
+[project]
+name = "engineering-activity"
+version = "0.1.0"
+description = "Agregação mensal de atividade Git, somente contagens"
+requires-python = ">=3.9"

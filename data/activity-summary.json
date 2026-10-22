@@ -1,0 +1,28 @@
+{
+  "meses": {
+    "2026-07": {
+      "commits": 15,
+      "com_ia": 0,
+      "bumps_excluidos": 0
+    },
+    "2026-08": {
+      "commits": 142,
+      "com_ia": 1,
+      "bumps_excluidos": 29
+    },
+    "2026-09": {
+      "commits": 183,
+      "com_ia": 40,
+      "bumps_excluidos": 46
+    },
+    "2026-10": {
+      "commits": 239,
+      "com_ia": 110,
+      "bumps_excluidos": 40
+    }
+  },
+  "total_commits": 579,
+  "total_com_ia": 151,
+  "primeiro_mes": "2026-07",
+  "criterios": "sem merges, sem bumps de versão, hashes únicos entre ramos"
+}
