@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 260" role="img" aria-labelledby="title desc">
+<title id="title">Engineering Activity — Renata Shirlen</title><desc id="desc">2026-07 a 2026-10. Snapshot: 2026-10-22. 582 Commits; 43 Dias ativos; 322 Issues fechadas. Issues: 2026-08 a 2026-10. Último mês pode ser parcial. Contagens de atividade, não produtividade.</desc>
+<style>text{font-family:Segoe UI,Arial,sans-serif}.number{font-size:34px;font-weight:700;fill:#F9A8D4}.label{font-size:17px;fill:#F5E9FF}.note{font-size:14px;fill:#F5E9FF}</style>
+<rect x="1" y="1" width="658" height="258" rx="18" fill="#171224" stroke="#C084FC"/>
+<path d="M26 26H72" stroke="#7C3AED" stroke-width="5"/>
+<text x="26" y="58" fill="#C084FC" font-size="22" font-weight="700">Engineering Activity</text>
+<text x="26" y="115" class="number">582</text><text x="26" y="143" class="label">Commits</text><text x="232" y="115" class="number">43</text><text x="232" y="143" class="label">Dias ativos</text><text x="438" y="115" class="number">322</text><text x="438" y="143" class="label">Issues fechadas</text><text x="26" y="180" class="note">2026-07 a 2026-10 · último mês pode ser parcial</text>
+<text x="26" y="205" class="note">Issues: 2026-08 a 2026-10</text>
+<text x="26" y="234" class="note">Snapshot: 2026-10-22 · Agregados públicos; sem dados individuais</text></svg>
